@@ -1,0 +1,64 @@
+# imports
+
+import os
+from IPython.display import Markdown, display
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# constants
+load_dotenv(override=True)
+api_key = os.getenv('OPENAI_API_KEY')
+
+if api_key and api_key.startswith('sk-proj-') and len(api_key)>10:
+    print("API key looks good so far")
+else:
+    print("There might be a problem with your API key? Please visit the troubleshooting notebook!")
+    
+openai = OpenAI()
+
+MODEL_GPT = 'gpt-4o-mini'
+
+# set up environment
+
+system_prompt = "You are provided with a coding question. You are tasked with explaining what the code does. Respond in Markdown"
+
+def user_prompt(code):
+    question = f"Please explain what this code does and why: {code}"
+    return question
+
+def explain_code(code):
+    """Function to send code to OpenAI API and stream the explanation in Markdown."""
+    try:
+        # Use OpenAI API to explain the code
+        stream = openai.chat.completions.create(
+            model=MODEL_GPT,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt(code)}
+            ],
+            stream=True  # Enable streaming response
+        )
+
+        # Initialize an empty response
+        response = ""
+        display_handle = display(Markdown(""), display_id=True)
+
+        for chunk in stream:
+            # Extract the content of the current chunk
+            response += chunk.choices[0].delta.content or ""
+
+            # Ensure chunk_content is valid
+            if not response:
+                continue
+
+            # Update display with only the new chunk
+            display_handle.update(Markdown(response))
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+# ENTER CODE SNIPPET HERE
+code = """{<Country={'USA'}>}Sum(Sales)/Count(distinct Customer_ID)"""
+
+# Run the code
+explain_code(code)

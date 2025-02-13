@@ -1,6 +1,7 @@
 # imports
 
 import os
+import sys
 from IPython.display import Markdown, display
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -12,7 +13,8 @@ api_key = os.getenv('OPENAI_API_KEY')
 if api_key and api_key.startswith('sk-proj-') and len(api_key)>10:
     print("API key looks good so far")
 else:
-    print("There might be a problem with your API key? Please visit the troubleshooting notebook!")
+    print("There might be a problem with your API key.  The script will cease execution.")
+    sys.exit()
     
 openai = OpenAI()
 
